@@ -1,0 +1,4 @@
+interface:
+  display_name: "Silico Grove Video"
+  short_description: "Generate videos with Silico Grove."
+  default_prompt: "Use $silicogrove-video to generate a video with Silico Grove."
