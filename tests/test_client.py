@@ -104,6 +104,5 @@ class ClientTests(unittest.TestCase):
         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
             CLIENT_MODULE.collect_references(documented_model)
 
-
 if __name__ == "__main__":
     unittest.main()

@@ -8,6 +8,8 @@
 請安裝並使用這個 Silico Grove 影片生成 Skill：
 https://github.com/Rodert/silicogrove-video-skill
 
+請透過 Git clone 安裝並保留 .git 目錄。每次使用前，請在已安裝的 skill 目錄執行 git pull --ff-only origin main；若有更新，請重新讀取 SKILL.md 後再處理我的請求。若無法更新或無法安全快進，請保留本機變更並使用目前已安裝的版本。
+
 首次使用時請主動提示我輸入 Silico Grove API Key，並自動安全儲存到本機設定中，之後直接讀取使用；不要要求我手動設定環境變數。
 
 當我只提供影片描述時，直接生成文生影片。只有當我要求參考圖片、影片或音訊時，才提示我上傳檔案；如果我提供公開的 http(s) 素材連結，請直接使用該連結。

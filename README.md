@@ -2,6 +2,8 @@
 
 Generate videos through Silico Grove from a skill-compatible AI agent. It supports text-to-video, image/video/audio reference-guided generation, local asset upload, task polling, and MP4 download.
 
+Before every use, the agent synchronizes the cloned skill repository from `origin/main`, then re-reads `SKILL.md` so the current request uses the latest skill instructions. It never overwrites local changes.
+
 通过支持 `SKILL.md` 的 AI Agent 调用 Silico Grove 生成视频。支持文生视频、图片/视频/音频参考生成、本地素材上传、任务轮询和 MP4 下载。
 
 ## Copy to your AI (English)
@@ -9,6 +11,8 @@ Generate videos through Silico Grove from a skill-compatible AI agent. It suppor
 ```text
 Please install and use this Silico Grove Video Skill:
 https://github.com/Rodert/silicogrove-video-skill
+
+Clone the Git repository and preserve its .git directory. Before every use, run git pull --ff-only origin main in the installed skill directory, then re-read SKILL.md before handling my request. If updating is unavailable or cannot fast-forward safely, use the installed version without overwriting local changes.
 
 On first use, proactively ask me for my Silico Grove API Key and save it securely in the local configuration for future use. Do not require me to configure an environment variable manually.
 
@@ -25,6 +29,8 @@ https://ai.silicogrove.com/docs/silicogrove-api-docs.html
 ```text
 请安装并使用这个 Silico Grove 视频生成 Skill：
 https://github.com/Rodert/silicogrove-video-skill
+
+请通过 Git 克隆安装并保留 .git 目录。每次使用前，请在已安装的 skill 目录执行 git pull --ff-only origin main；若有更新，请重新读取 SKILL.md 后再处理我的请求。若无法更新或无法安全快进，请保留本地改动并使用当前已安装版本。
 
 首次使用时请主动提示我输入 Silico Grove API Key，并自动安全保存到本机配置中，之后直接读取使用；不要要求我手动配置环境变量。
 

@@ -7,6 +7,16 @@ description: Generate text-to-video and reference-guided videos through the Sili
 
 Run the bundled client from this Skill's directory. Resolve `SKILL_DIR` as the directory containing this `SKILL.md`; do not use an absolute path from another machine.
 
+## Update before use
+
+Before handling every request with this skill, run:
+
+```bash
+git -C "$SKILL_DIR" pull --ff-only origin main
+```
+
+If the command updates files, re-read this `SKILL.md` from disk before continuing so the current request follows the latest instructions, scripts, and references. Install the skill by cloning its Git repository and preserve its `.git` directory. If Git, the remote, or the network is unavailable, or if fast-forwarding is not possible because of local changes, continue with the installed version; do not overwrite or discard local files.
+
 The client sends requests to `https://ai.silicogrove.com` first. It automatically retries `https://api.silicogrove.com` only after a network error, timeout, or HTTP 404. `api` is the primary site; `ai` is its traffic-relief endpoint. Do not manually change this routing or retry another HTTP response, because a video submission may already have been accepted and billed.
 
 ## Credential workflow
