@@ -14,7 +14,7 @@ https://github.com/Rodert/silicogrove-video-skill
 
 Clone the Git repository and preserve its .git directory. Before every use, run git pull --ff-only origin main in the installed skill directory, then re-read SKILL.md before handling my request. If updating is unavailable or cannot fast-forward safely, use the installed version without overwriting local changes.
 
-On first use, proactively ask me for my Silico Grove API Key and save it securely in the local configuration for future use. Do not require me to configure an environment variable manually.
+On first use, proactively ask me for my Silico Grove API Key and save it securely in the local configuration for future use. When I provide a new key, replace the previously saved key because it may have expired. Do not require me to configure an environment variable manually.
 
 Generate directly from text when I only provide a video description. Ask me to upload a file only when I ask to use an image, video, or audio reference. Use a public http(s) reference URL directly when I provide one.
 
@@ -32,7 +32,7 @@ https://github.com/Rodert/silicogrove-video-skill
 
 请通过 Git 克隆安装并保留 .git 目录。每次使用前，请在已安装的 skill 目录执行 git pull --ff-only origin main；若有更新，请重新读取 SKILL.md 后再处理我的请求。若无法更新或无法安全快进，请保留本地改动并使用当前已安装版本。
 
-首次使用时请主动提示我输入 Silico Grove API Key，并自动安全保存到本机配置中，之后直接读取使用；不要要求我手动配置环境变量。
+首次使用时请主动提示我输入 Silico Grove API Key，并自动安全保存到本机配置中，之后直接读取使用；当我提供新 key 时，替换旧 key，因为旧 key 可能已过期；不要要求我手动配置环境变量。
 
 当我只提供视频描述时，直接生成文生视频。只有当我要求参考图片、视频或音频时，才提示我上传文件；如果我提供公网 http(s) 素材链接，请直接使用该链接。
 

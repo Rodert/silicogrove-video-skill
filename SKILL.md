@@ -22,7 +22,7 @@ The client sends requests to `https://ai.silicogrove.com` first. It automaticall
 ## Credential workflow
 
 1. Run `python3 "$SKILL_DIR/scripts/silicogrove_video.py" config --show-status`.
-2. If it prints `not configured`, ask: `Please provide your Silico Grove API Key (sk-...). I will save it locally for future Silico Grove video requests. If you do not have one, sign in at https://api.silicogrove.com/keys and create a key with access to a video model.`
+2. If it prints `not configured`, ask: `Please provide your Silico Grove API Key (sk-...). I will save it locally for future Silico Grove video requests. If you do not have one, sign in at https://api.silicogrove.com/keys and create a key with access to a video model.` When the user provides a new key, save it even if one is already configured; the new key replaces the old key, which may have expired.
 3. Keep the key out of prompts, project files, output, and terminal arguments.
 4. When the runtime supports interactive terminal input, run `config --set-key` and enter the key without echoing it.
 5. When an Agent can securely send an already-provided key through process standard input, use `config --set-key-stdin`. Do not put it in a command-line argument or environment variable.

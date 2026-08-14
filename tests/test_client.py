@@ -45,6 +45,11 @@ class ClientTests(unittest.TestCase):
             self.assertEqual(path.stat().st_mode & 0o777, 0o600)
             self.assertEqual(path.parent.stat().st_mode & 0o777, 0o700)
 
+    def test_save_key_replaces_the_existing_key(self):
+        CLIENT_MODULE.save_key("sk-replacement-value")
+        self.assertEqual(CLIENT_MODULE.load_key(), "sk-replacement-value")
+        self.assertEqual(json.loads(CLIENT_MODULE.config_path().read_text()), {"api_key": "sk-replacement-value"})
+
     def test_prefers_ai_endpoint(self):
         with patch.object(CLIENT_MODULE.urllib.request, "urlopen", return_value=self.response({"id": "task_1"})) as urlopen:
             response, base = CLIENT_MODULE.json_request("POST", "/v1/videos", {"model": "m"})
