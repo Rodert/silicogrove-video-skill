@@ -52,7 +52,7 @@ python3 "$SKILL_DIR/scripts/silicogrove_video.py" generate \
   --output-dir ./outputs
 ```
 
-The client waits for completion, then writes an MP4 path. Add `--no-wait` to return the task ID, then resume with `status TASK_ID --output-dir ./outputs`.
+The client creates a private JSONL task log in the output directory before every `generate` or `status` request. It records the task ID, upload and polling state, result path, and summarized errors, but never the API key, prompt, reference URLs, or raw server responses. Return the log path with every request result. If terminal output is lost, inspect that log before retrying; use its task ID with `status TASK_ID --output-dir ./outputs` to resume an accepted task. The client waits for completion, then writes an MP4 path. Add `--no-wait` to return the task ID immediately.
 
 ## Error handling
 

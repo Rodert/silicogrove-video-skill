@@ -23,12 +23,14 @@ class ClientTests(unittest.TestCase):
         self.original_config = os.environ.get("XDG_CONFIG_HOME")
         os.environ["XDG_CONFIG_HOME"] = self.config.name
         CLIENT_MODULE.save_key("sk-test-value")
+        CLIENT_MODULE.ACTIVE_TASK_LOG = None
 
     def tearDown(self):
         if self.original_config is None:
             os.environ.pop("XDG_CONFIG_HOME", None)
         else:
             os.environ["XDG_CONFIG_HOME"] = self.original_config
+        CLIENT_MODULE.ACTIVE_TASK_LOG = None
         self.config.cleanup()
 
     def response(self, payload):
@@ -80,6 +82,33 @@ class ClientTests(unittest.TestCase):
     def test_task_id_accepts_openai_response(self):
         self.assertEqual(CLIENT_MODULE.task_id_from({"id": "video_1"}), "video_1")
         self.assertEqual(CLIENT_MODULE.task_id_from({"data": {"task_id": "task_1"}}), "task_1")
+
+    def test_generate_persists_a_redacted_task_log(self):
+        with tempfile.TemporaryDirectory() as directory:
+            prompt = "A private prompt that must not be logged"
+            args = SimpleNamespace(
+                model="video-ds-2.0-fast", prompt=prompt, seconds="5", aspect_ratio="16:9",
+                image=[], video=[], audio=[], output_dir=directory, no_wait=True,
+            )
+            with patch.object(CLIENT_MODULE, "json_request", return_value=({"id": "task_1"}, "https://api.example")):
+                with contextlib.redirect_stdout(io.StringIO()):
+                    CLIENT_MODULE.generate(args)
+            logs = list(Path(directory).glob("silicogrove-task-*.jsonl"))
+            self.assertEqual(len(logs), 1)
+            contents = logs[0].read_text()
+            self.assertIn('"task_id": "task_1"', contents)
+            self.assertIn('"event": "task_submitted"', contents)
+            self.assertNotIn(prompt, contents)
+            if os.name != "nt":
+                self.assertEqual(logs[0].stat().st_mode & 0o777, 0o600)
+
+    def test_fail_persists_the_summarized_error(self):
+        with tempfile.TemporaryDirectory() as directory:
+            task_log = CLIENT_MODULE.TaskLog(directory, "generate")
+            CLIENT_MODULE.ACTIVE_TASK_LOG = task_log
+            with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                CLIENT_MODULE.fail("Silico Grove could not complete the video request. Please retry later.")
+            self.assertIn('"event": "error"', task_log.path.read_text())
 
     def test_audio_webm_is_accepted(self):
         with tempfile.TemporaryDirectory() as directory:

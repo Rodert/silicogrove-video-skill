@@ -25,6 +25,7 @@ EXTENSIONS = {
     "audio": {".mp3", ".m4a", ".wav", ".aac", ".ogg", ".webm"},
 }
 MAX_FILE_BYTES = {"image": 10 * 1024 * 1024, "video": 100 * 1024 * 1024, "audio": 20 * 1024 * 1024}
+ACTIVE_TASK_LOG = None
 
 
 def config_path():
@@ -36,6 +37,8 @@ def config_path():
 
 
 def fail(message):
+    if ACTIVE_TASK_LOG:
+        ACTIVE_TASK_LOG.event("error", message=message)
     print(f"Error: {message}", file=sys.stderr)
     raise SystemExit(1)
 
@@ -43,6 +46,29 @@ def fail(message):
 def private_mode(path, mode):
     if os.name != "nt":
         os.chmod(path, mode)
+
+
+class TaskLog:
+    """Persist non-sensitive request state so a task can be recovered after a lost terminal."""
+
+    def __init__(self, output_dir, action, task_id=None):
+        directory = Path(output_dir).expanduser().resolve()
+        directory.mkdir(parents=True, exist_ok=True)
+        name = f"silicogrove-task-{time.strftime('%Y%m%d-%H%M%S')}-{secrets.token_hex(4)}.jsonl"
+        self.path = directory / name
+        self.event("started", action=action, task_id=task_id)
+
+    def event(self, event, **details):
+        payload = {"time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "event": event, **details}
+        try:
+            with open(self.path, "a", encoding="utf-8") as handle:
+                private_mode(self.path, 0o600)
+                json.dump(payload, handle, sort_keys=True)
+                handle.write("\n")
+                handle.flush()
+                os.fsync(handle.fileno())
+        except OSError:
+            pass
 
 
 def save_key(key):
@@ -148,8 +174,10 @@ def validate_reference(kind, raw_path):
     return path
 
 
-def upload_reference(kind, raw_path):
+def upload_reference(kind, raw_path, task_log=None):
     path = validate_reference(kind, raw_path)
+    if task_log:
+        task_log.event("reference_upload_started", kind=kind)
     body, content_type = multipart({"kind": kind}, path)
     raw, _, used_base = api_request("POST", "/pg/assets", body, content_type)
     try:
@@ -159,6 +187,8 @@ def upload_reference(kind, raw_path):
         fail("Silico Grove did not return a usable reference asset URL.")
     if not isinstance(url, str) or not url.startswith(("https://", "http://")):
         fail("Silico Grove did not return a usable reference asset URL.")
+    if task_log:
+        task_log.event("reference_upload_completed", kind=kind)
     return url, used_base
 
 
@@ -167,13 +197,13 @@ def is_public_url(value):
     return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
-def reference_url(kind, value):
+def reference_url(kind, value, task_log=None):
     if is_public_url(value):
         return value, None
-    return upload_reference(kind, value)
+    return upload_reference(kind, value, task_log)
 
 
-def collect_references(args):
+def collect_references(args, task_log=None):
     supplied = {"image": args.image, "video": args.video, "audio": args.audio}
     result = {}
     used_base = None
@@ -182,7 +212,7 @@ def collect_references(args):
             fail(f"At most {MAX_REFERENCES[kind]} {kind} reference file(s) are allowed.")
         urls = []
         for value in paths:
-            url, reference_base = reference_url(kind, value)
+            url, reference_base = reference_url(kind, value, task_log)
             if reference_base:
                 used_base = reference_base
             urls.append(url)
@@ -205,7 +235,7 @@ def task_status(response):
     return value.lower() if isinstance(value, str) else ""
 
 
-def download_task(task_id, output_dir, base_url):
+def download_task(task_id, output_dir, base_url, task_log=None):
     raw, content_type, _ = api_request("GET", f"/v1/videos/{urllib.parse.quote(task_id, safe='')}/content", base_url=base_url)
     if not raw:
         fail("Silico Grove returned an empty video file.")
@@ -214,15 +244,19 @@ def download_task(task_id, output_dir, base_url):
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / f"silicogrove-{time.strftime('%Y%m%d-%H%M%S')}-{task_id}{suffix}"
     path.write_bytes(raw)
+    if task_log:
+        task_log.event("result_downloaded", task_id=task_id, result_path=str(path))
     print(str(path))
 
 
-def wait_for_task(task_id, output_dir, base_url):
+def wait_for_task(task_id, output_dir, base_url, task_log=None):
     while True:
         response, used_base = json_request("GET", f"/v1/videos/{urllib.parse.quote(task_id, safe='')}", base_url=base_url)
         status = task_status(response)
+        if task_log:
+            task_log.event("task_status", task_id=task_id, status=status or "unknown")
         if status in {"completed", "succeeded", "success"}:
-            download_task(task_id, output_dir, used_base)
+            download_task(task_id, output_dir, used_base, task_log)
             return
         if status in {"failed", "cancelled", "canceled", "error"}:
             fail("Silico Grove video generation did not complete. Check the prompt and model access, then retry.")
@@ -240,20 +274,27 @@ def list_models():
 
 
 def generate(args):
+    global ACTIVE_TASK_LOG
+    task_log = TaskLog(args.output_dir, "generate")
+    ACTIVE_TASK_LOG = task_log
+    print(f"Task log: {task_log.path}")
     if not args.model.strip() or not args.prompt.strip():
         fail("model and prompt cannot be empty.")
     if not args.seconds.isdigit() or int(args.seconds) <= 0:
         fail("seconds must be a positive whole-number string.")
     if args.aspect_ratio not in {"16:9", "9:16", "1:1"}:
         fail("aspect-ratio must be 16:9, 9:16, or 1:1.")
-    references, upload_base = collect_references(args)
+    reference_counts = {"images": len(args.image), "videos": len(args.video), "audios": len(args.audio)}
+    task_log.event("request_validated", model=args.model, seconds=args.seconds, aspect_ratio=args.aspect_ratio, **reference_counts)
+    references, upload_base = collect_references(args, task_log)
     payload = {"model": args.model, "prompt": args.prompt, "seconds": args.seconds, "aspect_ratio": args.aspect_ratio, **references}
     response, used_base = json_request("POST", "/v1/videos", payload, base_url=upload_base)
     task_id = task_id_from(response)
+    task_log.event("task_submitted", task_id=task_id)
     if args.no_wait:
         print(task_id)
         return
-    wait_for_task(task_id, args.output_dir, used_base)
+    wait_for_task(task_id, args.output_dir, used_base, task_log)
 
 
 def main():
@@ -281,7 +322,10 @@ def main():
     if args.action == "generate":
         generate(args)
     elif args.action == "status":
-        wait_for_task(args.task_id, args.output_dir, None)
+        global ACTIVE_TASK_LOG
+        ACTIVE_TASK_LOG = TaskLog(args.output_dir, "status", args.task_id)
+        print(f"Task log: {ACTIVE_TASK_LOG.path}")
+        wait_for_task(args.task_id, args.output_dir, None, ACTIVE_TASK_LOG)
     elif args.action == "models":
         list_models()
     elif args.set_key_stdin:
