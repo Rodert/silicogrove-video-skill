@@ -8,7 +8,7 @@
 次の Silico Grove 動画生成 Skill をインストールして使用してください。
 https://github.com/Rodert/silicogrove-video-skill
 
-Git clone でインストールし、.git ディレクトリを保持してください。使用するたびに、インストール済み skill のディレクトリで git pull --ff-only origin main を実行し、更新があった場合は私のリクエストを処理する前に SKILL.md を再読してください。更新できない場合や安全に fast-forward できない場合は、ローカルの変更を保持してインストール済みのバージョンを使用してください。
+Git clone でインストールし、.git ディレクトリを保持してください。毎日の最初の使用前に `python3 "$SKILL_DIR/scripts/check_update.py" "$SKILL_DIR"` を実行し、`updated` の場合だけ `SKILL.md` を再読してください。更新できない場合や安全に fast-forward できない場合は、ローカルの変更を保持してインストール済みのバージョンを使用してください。
 
 初回使用時には Silico Grove API Key の入力を私に求め、今後使えるようローカル設定に安全に保存してください。環境変数を手動で設定するよう私に求めないでください。
 

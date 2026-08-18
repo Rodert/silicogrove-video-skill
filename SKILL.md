@@ -7,31 +7,30 @@ description: Generate text-to-video and reference-guided videos through the Sili
 
 Run the bundled client from this Skill's directory. Resolve `SKILL_DIR` as the directory containing this `SKILL.md`; do not use an absolute path from another machine.
 
-## Update before use
+## Daily update check
 
-Before handling every request with this skill, run:
+Before the first request in a 24-hour period, run:
 
 ```bash
-git -C "$SKILL_DIR" pull --ff-only origin main
+python3 "$SKILL_DIR/scripts/check_update.py" "$SKILL_DIR"
 ```
 
-If the command updates files, re-read this `SKILL.md` from disk before continuing so the current request follows the latest instructions, scripts, and references. Install the skill by cloning its Git repository and preserve its `.git` directory. If Git, the remote, or the network is unavailable, or if fast-forwarding is not possible because of local changes, continue with the installed version; do not overwrite or discard local files.
+The script stores only a timestamp in the user's cache and returns `skipped`, `checked`, `updated`, `failed`, `blocked`, or `unavailable`. Keep `skipped` and `checked` silent. If it returns `updated`, re-read this `SKILL.md` before continuing. For `failed`, `blocked`, or `unavailable`, continue with the installed version and mention the issue only if it affects the request. Never overwrite or discard local changes. Install the skill by cloning its Git repository and preserve its `.git` directory.
 
 The client sends requests to `https://ai.silicogrove.com` first. It automatically retries `https://api.silicogrove.com` only after a network error, timeout, or HTTP 404. `api` is the primary site; `ai` is its traffic-relief endpoint. Do not manually change this routing or retry another HTTP response, because a video submission may already have been accepted and billed.
 
 ## Credential workflow
 
-1. Run `python3 "$SKILL_DIR/scripts/silicogrove_video.py" config --show-status`.
-2. If it prints `not configured`, ask: `Please provide your Silico Grove API Key (sk-...). I will save it locally for future Silico Grove video requests. If you do not have one, sign in at https://api.silicogrove.com/keys and create a key with access to a video model.` When the user provides a new key, save it even if one is already configured; the new key replaces the old key, which may have expired.
-3. Keep the key out of prompts, project files, output, and terminal arguments.
-4. When the runtime supports interactive terminal input, run `config --set-key` and enter the key without echoing it.
-5. When an Agent can securely send an already-provided key through process standard input, use `config --set-key-stdin`. Do not put it in a command-line argument or environment variable.
+1. Run the requested client command directly. If it reports that no key is saved, ask: `Please provide your Silico Grove API Key (sk-...). I will save it locally for future Silico Grove video requests. If you do not have one, sign in at https://api.silicogrove.com/keys and create a key with access to a video model.` When the user provides a new key, save it even if one is already configured; the new key replaces the old key, which may have expired.
+2. Keep the key out of prompts, project files, output, and terminal arguments.
+3. When the runtime supports interactive terminal input, run `config --set-key` and enter the key without echoing it.
+4. When an Agent can securely send an already-provided key through process standard input, use `config --set-key-stdin`. Do not put it in a command-line argument or environment variable.
 
 The client stores the key in the current user's configuration directory (`~/.config/silicogrove-video/config.json` on macOS/Linux, or `$XDG_CONFIG_HOME/silicogrove-video/config.json` when set; `%APPDATA%\\silicogrove-video\\config.json` on Windows) using owner-only permissions where supported.
 
 ## Generate
 
-List models with `python3 "$SKILL_DIR/scripts/silicogrove_video.py" models`, then use a video model visible to the user's key. Pass video length as a string, usually `"5"`, `"10"`, or `"15"`, and use `16:9`, `9:16`, or `1:1` for the aspect ratio.
+Use a video model visible to the user's key. Run `models` only when the model is unknown or the request needs model discovery. Pass video length as a string, usually `"5"`, `"10"`, or `"15"`, and use `16:9`, `9:16`, or `1:1` for the aspect ratio.
 
 ```bash
 python3 "$SKILL_DIR/scripts/silicogrove_video.py" generate \

@@ -8,7 +8,7 @@
 请安装并使用这个 Silico Grove 视频生成 Skill：
 https://github.com/Rodert/silicogrove-video-skill
 
-请通过 Git 克隆安装并保留 .git 目录。每次使用前，请在已安装的 skill 目录执行 git pull --ff-only origin main；若有更新，请重新读取 SKILL.md 后再处理我的请求。若无法更新或无法安全快进，请保留本地改动并使用当前已安装版本。
+请通过 Git 克隆安装并保留 .git 目录。每天首次使用前，请运行 `python3 "$SKILL_DIR/scripts/check_update.py" "$SKILL_DIR"`；仅当返回 `updated` 时重新读取 `SKILL.md`。若无法更新或无法安全快进，请保留本地改动并使用当前已安装版本，日常检查保持静默。
 
 首次使用时请主动提示我输入 Silico Grove API Key，并自动安全保存到本机配置中，之后直接读取使用；不要要求我手动配置环境变量。
 

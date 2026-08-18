@@ -2,7 +2,7 @@
 
 Generate videos through Silico Grove from a skill-compatible AI agent. It supports text-to-video, image/video/audio reference-guided generation, local asset upload, task polling, and MP4 download.
 
-Before every use, the agent synchronizes the cloned skill repository from `origin/main`, then re-reads `SKILL.md` so the current request uses the latest skill instructions. It never overwrites local changes.
+Before the first use in each 24-hour period, the agent checks the cloned skill repository from `origin/main`, then re-reads `SKILL.md` only when it was updated. It keeps routine checks silent and never overwrites local changes.
 
 通过支持 `SKILL.md` 的 AI Agent 调用 Silico Grove 生成视频。支持文生视频、图片/视频/音频参考生成、本地素材上传、任务轮询和 MP4 下载。
 
@@ -12,7 +12,7 @@ Before every use, the agent synchronizes the cloned skill repository from `origi
 Please install and use this Silico Grove Video Skill:
 https://github.com/Rodert/silicogrove-video-skill
 
-Clone the Git repository and preserve its .git directory. Before every use, run git pull --ff-only origin main in the installed skill directory, then re-read SKILL.md before handling my request. If updating is unavailable or cannot fast-forward safely, use the installed version without overwriting local changes.
+Clone the Git repository and preserve its .git directory. Before the first use each day, run `python3 "$SKILL_DIR/scripts/check_update.py" "$SKILL_DIR"`; re-read `SKILL.md` only when it reports `updated`. If updating is unavailable or cannot fast-forward safely, use the installed version without overwriting local changes.
 
 On first use, proactively ask me for my Silico Grove API Key and save it securely in the local configuration for future use. When I provide a new key, replace the previously saved key because it may have expired. Do not require me to configure an environment variable manually.
 
@@ -30,7 +30,7 @@ https://ai.silicogrove.com/docs/silicogrove-api-docs.html
 请安装并使用这个 Silico Grove 视频生成 Skill：
 https://github.com/Rodert/silicogrove-video-skill
 
-请通过 Git 克隆安装并保留 .git 目录。每次使用前，请在已安装的 skill 目录执行 git pull --ff-only origin main；若有更新，请重新读取 SKILL.md 后再处理我的请求。若无法更新或无法安全快进，请保留本地改动并使用当前已安装版本。
+请通过 Git 克隆安装并保留 .git 目录。每天首次使用前，请运行 `python3 "$SKILL_DIR/scripts/check_update.py" "$SKILL_DIR"`；仅当返回 `updated` 时重新读取 `SKILL.md`。若无法更新或无法安全快进，请保留本地改动并使用当前已安装版本，日常检查保持静默。
 
 首次使用时请主动提示我输入 Silico Grove API Key，并自动安全保存到本机配置中，之后直接读取使用；当我提供新 key 时，替换旧 key，因为旧 key 可能已过期；不要要求我手动配置环境变量。
 

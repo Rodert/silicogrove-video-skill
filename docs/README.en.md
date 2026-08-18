@@ -8,7 +8,7 @@ This skill lets a compatible AI agent generate videos through Silico Grove. It s
 Please install and use this Silico Grove Video Skill:
 https://github.com/Rodert/silicogrove-video-skill
 
-Clone the Git repository and preserve its .git directory. Before every use, run git pull --ff-only origin main in the installed skill directory, then re-read SKILL.md before handling my request. If updating is unavailable or cannot fast-forward safely, use the installed version without overwriting local changes.
+Clone the Git repository and preserve its .git directory. Before the first use each day, run `python3 "$SKILL_DIR/scripts/check_update.py" "$SKILL_DIR"`; re-read `SKILL.md` only when it reports `updated`. If updating is unavailable or cannot fast-forward safely, use the installed version without overwriting local changes.
 
 On first use, proactively ask me for my Silico Grove API Key and save it securely in the local configuration for future use. Do not require me to configure an environment variable manually.
 
