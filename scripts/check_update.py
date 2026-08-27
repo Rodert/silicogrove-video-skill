@@ -34,19 +34,25 @@ def read_last_checked(path):
 
 
 def write_last_checked(path, timestamp):
-    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    private_mode(path.parent, 0o700)
     temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
     try:
+        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        private_mode(path.parent, 0o700)
         with open(temporary, "w", encoding="utf-8") as handle:
             private_mode(temporary, 0o600)
             json.dump({"last_checked": timestamp}, handle)
             handle.write("\n")
         os.replace(temporary, path)
         private_mode(path, 0o600)
+        return True
+    except OSError:
+        return False
     finally:
-        if temporary.exists():
-            temporary.unlink()
+        try:
+            if temporary.exists():
+                temporary.unlink()
+        except OSError:
+            pass
 
 
 def git_output(skill_dir, *args):

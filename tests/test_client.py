@@ -83,6 +83,18 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(CLIENT_MODULE.task_id_from({"id": "video_1"}), "video_1")
         self.assertEqual(CLIENT_MODULE.task_id_from({"data": {"task_id": "task_1"}}), "task_1")
 
+    def test_select_default_video_model_prefers_grok_1_5(self):
+        response = {"data": [{"id": "video-ds-2.0-fast"}, {"id": "grok-imagine-video"}, {"id": "grok-imagine-video-1.5"}]}
+        with patch.object(CLIENT_MODULE, "json_request", return_value=(response, "https://api.example")), contextlib.redirect_stdout(io.StringIO()) as output:
+            CLIENT_MODULE.select_default_video_model()
+        self.assertEqual(output.getvalue().strip(), "grok-imagine-video-1.5")
+
+    def test_select_default_video_model_uses_grok_fallback(self):
+        response = {"data": [{"id": "grok-imagine-video"}, {"id": "video-ds-2.0-fast"}]}
+        with patch.object(CLIENT_MODULE, "json_request", return_value=(response, "https://api.example")), contextlib.redirect_stdout(io.StringIO()) as output:
+            CLIENT_MODULE.select_default_video_model()
+        self.assertEqual(output.getvalue().strip(), "grok-imagine-video")
+
     def test_generate_persists_a_redacted_task_log(self):
         with tempfile.TemporaryDirectory() as directory:
             prompt = "A private prompt that must not be logged"

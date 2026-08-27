@@ -49,6 +49,11 @@ class UpdateCheckTests(unittest.TestCase):
         ):
             self.assertEqual(CHECK_UPDATE.check(Path("/skill")), "blocked")
 
+    def test_unwritable_cache_does_not_raise(self):
+        marker = CHECK_UPDATE.cache_path()
+        with patch.object(Path, "mkdir", side_effect=PermissionError):
+            self.assertFalse(CHECK_UPDATE.write_last_checked(marker, CHECK_UPDATE.time.time()))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -19,6 +19,14 @@ POLL_INTERVAL_SECONDS = 10
 DEFAULT_TIMEOUT_SECONDS = 300
 MAX_REFERENCES = {"image": 4, "video": 3, "audio": 1}
 REFERENCE_LIMITED_MODELS = {"video-ds-2.0", "video-ds-2.0-fast", "as-sd2.0-fast"}
+DEFAULT_VIDEO_MODELS = (
+    "grok-imagine-video-1.5",
+    "grok-imagine-video",
+    "video-ds-2.0-fast",
+    "video-ds-2.0",
+    "as-sd2.0-fast",
+    "kling-video-v3",
+)
 EXTENSIONS = {
     "image": {".jpg", ".jpeg", ".png", ".webp"},
     "video": {".mp4", ".mov", ".webm"},
@@ -273,6 +281,19 @@ def list_models():
             print(model["id"])
 
 
+def select_default_video_model():
+    response, _ = json_request("GET", "/v1/models")
+    models = response.get("data")
+    if not isinstance(models, list):
+        fail("Silico Grove returned an invalid model list.")
+    visible = {model.get("id") for model in models if isinstance(model, dict) and isinstance(model.get("id"), str)}
+    for model in DEFAULT_VIDEO_MODELS:
+        if model in visible:
+            print(model)
+            return
+    fail("No supported Silico Grove video model is available to this API key.")
+
+
 def generate(args):
     global ACTIVE_TASK_LOG
     task_log = TaskLog(args.output_dir, "generate")
@@ -305,6 +326,7 @@ def main():
     config.add_argument("--set-key", action="store_true")
     config.add_argument("--set-key-stdin", action="store_true")
     commands.add_parser("models")
+    commands.add_parser("select-model")
     generate_parser = commands.add_parser("generate")
     generate_parser.add_argument("--model", required=True)
     generate_parser.add_argument("--prompt", required=True)
@@ -328,6 +350,8 @@ def main():
         wait_for_task(args.task_id, args.output_dir, None, ACTIVE_TASK_LOG)
     elif args.action == "models":
         list_models()
+    elif args.action == "select-model":
+        select_default_video_model()
     elif args.set_key_stdin:
         save_key(sys.stdin.read())
         print("Silico Grove API key saved securely.")

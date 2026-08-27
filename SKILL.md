@@ -30,11 +30,17 @@ The client stores the key in the current user's configuration directory (`~/.con
 
 ## Generate
 
-Use a video model visible to the user's key. Run `models` only when the model is unknown or the request needs model discovery. Pass video length as a string, usually `"5"`, `"10"`, or `"15"`, and use `16:9`, `9:16`, or `1:1` for the aspect ratio.
+If the user specifies a model, use it without replacing it. If no model is specified, run the following exactly once before generating:
+
+```bash
+python3 "$SKILL_DIR/scripts/silicogrove_video.py" select-model
+```
+
+It queries `GET /v1/models` once and returns the first visible model in this order: `grok-imagine-video-1.5`, `grok-imagine-video`, `video-ds-2.0-fast`, `video-ds-2.0`, `as-sd2.0-fast`, `kling-video-v3`. Use the returned model directly. Do not show the full model list unless the user asks. If no supported video model is visible, report that result rather than trying arbitrary models. Pass video length as a string, usually `"5"`, `"10"`, or `"15"`, and use `16:9`, `9:16`, or `1:1` for the aspect ratio.
 
 ```bash
 python3 "$SKILL_DIR/scripts/silicogrove_video.py" generate \
-  --model video-ds-2.0-fast \
+  --model grok-imagine-video-1.5 \
   --prompt 'A cinematic 9:16 product video of a silver espresso machine, slow orbiting camera, morning light, realistic, no watermark.' \
   --seconds 10 --aspect-ratio 9:16 --output-dir ./outputs
 ```
