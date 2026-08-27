@@ -294,6 +294,18 @@ def select_default_video_model():
     fail("No supported Silico Grove video model is available to this API key.")
 
 
+def list_video_models():
+    response, _ = json_request("GET", "/v1/models")
+    models = response.get("data")
+    if not isinstance(models, list):
+        fail("Silico Grove returned an invalid model list.")
+    visible = [model["id"] for model in models if isinstance(model, dict) and isinstance(model.get("id"), str)]
+    candidates = [model for model in DEFAULT_VIDEO_MODELS if model in visible]
+    candidates.extend(model for model in visible if "video" in model.lower() and model not in candidates)
+    for model in candidates:
+        print(model)
+
+
 def generate(args):
     global ACTIVE_TASK_LOG
     task_log = TaskLog(args.output_dir, "generate")
@@ -326,6 +338,7 @@ def main():
     config.add_argument("--set-key", action="store_true")
     config.add_argument("--set-key-stdin", action="store_true")
     commands.add_parser("models")
+    commands.add_parser("video-models")
     commands.add_parser("select-model")
     generate_parser = commands.add_parser("generate")
     generate_parser.add_argument("--model", required=True)
@@ -350,6 +363,8 @@ def main():
         wait_for_task(args.task_id, args.output_dir, None, ACTIVE_TASK_LOG)
     elif args.action == "models":
         list_models()
+    elif args.action == "video-models":
+        list_video_models()
     elif args.action == "select-model":
         select_default_video_model()
     elif args.set_key_stdin:

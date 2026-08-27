@@ -95,6 +95,12 @@ class ClientTests(unittest.TestCase):
             CLIENT_MODULE.select_default_video_model()
         self.assertEqual(output.getvalue().strip(), "grok-imagine-video")
 
+    def test_list_video_models_excludes_non_video_models(self):
+        response = {"data": [{"id": "gpt-image-2"}, {"id": "grok-imagine-video"}, {"id": "new-video-model"}]}
+        with patch.object(CLIENT_MODULE, "json_request", return_value=(response, "https://api.example")), contextlib.redirect_stdout(io.StringIO()) as output:
+            CLIENT_MODULE.list_video_models()
+        self.assertEqual(output.getvalue().splitlines(), ["grok-imagine-video", "new-video-model"])
+
     def test_generate_persists_a_redacted_task_log(self):
         with tempfile.TemporaryDirectory() as directory:
             prompt = "A private prompt that must not be logged"
