@@ -1,10 +1,12 @@
-# Silico Grove Video Skill
+# 硅碳森林视频 Skill
+
+用一句话生成视频，也可以用图片、视频或音频作为参考素材，由 AI 自动完成生成和下载。
 
 Generate videos through Silico Grove from a skill-compatible AI agent. It supports text-to-video, image/video/audio reference-guided generation, local asset upload, task polling, and MP4 download.
 
 Before the first use in each 24-hour period, the agent checks the cloned skill repository from `origin/main`, then re-reads `SKILL.md` only when it was updated. It keeps routine checks silent and never overwrites local changes.
 
-通过支持 `SKILL.md` 的 AI Agent 调用 Silico Grove 生成视频。支持文生视频、图片/视频/音频参考生成、本地素材上传、任务轮询和 MP4 下载。
+硅碳森林视频 Skill 通过支持 `SKILL.md` 的 AI Agent 生成视频，支持文生视频、图片/视频/音频参考生成、本地素材上传、任务轮询和 MP4 下载。
 
 ## Copy to your AI (English)
 
