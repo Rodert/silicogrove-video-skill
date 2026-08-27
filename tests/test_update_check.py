@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 
 SCRIPT = Path(__file__).parents[1] / "scripts" / "check_update.py"
@@ -38,16 +38,25 @@ class UpdateCheckTests(unittest.TestCase):
             CHECK_UPDATE, "git_output", return_value=SimpleNamespace(returncode=0, stdout="")
         ) as git:
             self.assertEqual(CHECK_UPDATE.check(Path("/skill")), "updated")
-        git.assert_called_once_with(Path("/skill"), "pull", "--ff-only", "origin", "main")
+        self.assertEqual(git.call_args_list, [
+            call(Path("/skill"), "fetch", "--quiet", "origin", "main"),
+            call(Path("/skill"), "reset", "--hard", "FETCH_HEAD"),
+        ])
         self.assertTrue(CHECK_UPDATE.cache_path().is_file())
 
-    def test_local_changes_report_blocked(self):
-        pull_failed = SimpleNamespace(returncode=1, stdout="")
-        local_changes = SimpleNamespace(returncode=0, stdout=" M SKILL.md\n")
-        with patch.object(CHECK_UPDATE, "head", return_value="same"), patch.object(
-            CHECK_UPDATE, "git_output", side_effect=[pull_failed, local_changes]
-        ):
-            self.assertEqual(CHECK_UPDATE.check(Path("/skill")), "blocked")
+    def test_local_changes_are_overwritten_by_the_upstream_revision(self):
+        with patch.object(CHECK_UPDATE, "head", side_effect=["local", "upstream"]), patch.object(
+            CHECK_UPDATE, "git_output", return_value=SimpleNamespace(returncode=0, stdout="")
+        ) as git:
+            self.assertEqual(CHECK_UPDATE.check(Path("/skill")), "updated")
+        self.assertEqual(git.call_count, 2)
+
+    def test_failed_fetch_does_not_attempt_a_reset(self):
+        with patch.object(CHECK_UPDATE, "head", return_value="local"), patch.object(
+            CHECK_UPDATE, "git_output", return_value=SimpleNamespace(returncode=1, stdout="")
+        ) as git:
+            self.assertEqual(CHECK_UPDATE.check(Path("/skill")), "failed")
+        git.assert_called_once_with(Path("/skill"), "fetch", "--quiet", "origin", "main")
 
     def test_unwritable_cache_does_not_raise(self):
         marker = CHECK_UPDATE.cache_path()

@@ -15,7 +15,7 @@ Before the first request in a 24-hour period, run:
 python3 "$SKILL_DIR/scripts/check_update.py" "$SKILL_DIR"
 ```
 
-The script stores only a timestamp in the user's cache and returns `skipped`, `checked`, `updated`, `failed`, `blocked`, or `unavailable`. Keep `skipped` and `checked` silent. If it returns `updated`, re-read this `SKILL.md` before continuing. For `failed`, `blocked`, or `unavailable`, continue with the installed version and mention the issue only if it affects the request. Never overwrite or discard local changes. Install the skill by cloning its Git repository and preserve its `.git` directory.
+The script stores only a timestamp in the user's cache and returns `skipped`, `checked`, `updated`, `failed`, or `unavailable`. Keep `skipped` and `checked` silent. If it returns `updated`, re-read this `SKILL.md` before continuing. For `failed` or `unavailable`, continue with the installed version and mention the issue only if it affects the request. When an update is available, it fetches `origin/main` and force-resets tracked skill files to that revision; local tracked changes are intentionally discarded, while untracked files are kept. Install the skill by cloning its Git repository and preserve its `.git` directory.
 
 The client sends requests to `https://ai.silicogrove.com` first. It automatically retries `https://api.silicogrove.com` only after a network error, timeout, or HTTP 404. `api` is the primary site; `ai` is its traffic-relief endpoint. Do not manually change this routing or retry another HTTP response, because a video submission may already have been accepted and billed.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check the installed skill for upstream changes at most once per day."""
+"""Force-sync the installed skill to upstream at most once per day."""
 
 import json
 import os
@@ -88,13 +88,16 @@ def check(skill_dir):
         write_last_checked(marker, now)
         return "unavailable"
 
-    result = git_output(skill_dir, "pull", "--ff-only", "origin", "main")
+    fetch = git_output(skill_dir, "fetch", "--quiet", "origin", "main")
+    if fetch.returncode != 0:
+        write_last_checked(marker, now)
+        return "failed"
+
+    result = git_output(skill_dir, "reset", "--hard", "FETCH_HEAD")
     write_last_checked(marker, now)
     if result.returncode == 0:
         return "updated" if head(skill_dir) != before else "checked"
-
-    status = git_output(skill_dir, "status", "--porcelain")
-    return "blocked" if status.returncode == 0 and status.stdout else "failed"
+    return "failed"
 
 
 def main():

@@ -6,7 +6,7 @@
 
 Generate videos through Silico Grove from a skill-compatible AI agent. It supports text-to-video, image/video/audio reference-guided generation, local asset upload, task polling, and MP4 download.
 
-Before the first use in each 24-hour period, the agent checks the cloned skill repository from `origin/main`, then re-reads `SKILL.md` only when it was updated. It keeps routine checks silent and never overwrites local changes.
+Before the first use in each 24-hour period, the agent checks the cloned skill repository from `origin/main`, then re-reads `SKILL.md` only when it was updated. An available update force-resets tracked skill files to upstream so users maintain one canonical version; routine checks remain silent.
 
 硅碳森林视频 Skill 通过支持 `SKILL.md` 的 AI Agent 生成视频，支持文生视频、图片/视频/音频参考生成、本地素材上传、任务轮询和 MP4 下载。
 
@@ -18,7 +18,7 @@ Grok 模型按官方字段协议执行：`grok-imagine-video` 仅文生视频；
 Please install and use this Silico Grove Video Skill:
 https://github.com/Rodert/silicogrove-video-skill
 
-Clone the Git repository and preserve its .git directory. Before the first use each day, run `python3 "$SKILL_DIR/scripts/check_update.py" "$SKILL_DIR"`; re-read `SKILL.md` only when it reports `updated`. If updating is unavailable or cannot fast-forward safely, use the installed version without overwriting local changes.
+Clone the Git repository and preserve its .git directory. Before the first use each day, run `python3 "$SKILL_DIR/scripts/check_update.py" "$SKILL_DIR"`; re-read `SKILL.md` only when it reports `updated`. An available update force-resets tracked skill files to `origin/main`, discarding local tracked changes; if updating is unavailable, use the installed version.
 
 On first use, proactively ask me for my Silico Grove API Key and save it securely in the local configuration for future use. When I provide a new key, replace the previously saved key because it may have expired. Do not require me to configure an environment variable manually.
 
@@ -36,7 +36,7 @@ https://ai.silicogrove.com/docs/silicogrove-api-docs.html
 请安装并使用这个 Silico Grove 视频生成 Skill：
 https://github.com/Rodert/silicogrove-video-skill
 
-请通过 Git 克隆安装并保留 .git 目录。每天首次使用前，请运行 `python3 "$SKILL_DIR/scripts/check_update.py" "$SKILL_DIR"`；仅当返回 `updated` 时重新读取 `SKILL.md`。若无法更新或无法安全快进，请保留本地改动并使用当前已安装版本，日常检查保持静默。
+请通过 Git 克隆安装并保留 .git 目录。每天首次使用前，请运行 `python3 "$SKILL_DIR/scripts/check_update.py" "$SKILL_DIR"`；仅当返回 `updated` 时重新读取 `SKILL.md`。发现更新时，脚本会强制将已跟踪的 Skill 文件重置为 `origin/main`，丢弃本地已跟踪改动；若无法更新则继续使用当前版本，日常检查保持静默。
 
 首次使用时请主动提示我输入 Silico Grove API Key，并自动安全保存到本机配置中，之后直接读取使用；当我提供新 key 时，替换旧 key，因为旧 key 可能已过期；不要要求我手动配置环境变量。
 
