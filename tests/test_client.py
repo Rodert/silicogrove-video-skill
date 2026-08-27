@@ -156,5 +156,64 @@ class ClientTests(unittest.TestCase):
         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
             CLIENT_MODULE.collect_references(documented_model)
 
+    def video_args(self, **overrides):
+        values = {
+            "model": "grok-imagine-video-1.5", "prompt": "A test prompt", "seconds": "8",
+            "aspect_ratio": "16:9", "resolution": "720p", "image": [],
+            "reference_image": [], "video": [], "audio": [],
+        }
+        values.update(overrides)
+        return SimpleNamespace(**values)
+
+    def test_grok_1_5_first_frame_uses_singular_image_field(self):
+        args = self.video_args(image=["https://cdn.example.com/first-frame.png"], resolution="1080p")
+        payload, upload_base = CLIENT_MODULE.build_video_payload(args)
+        self.assertIsNone(upload_base)
+        self.assertEqual(payload, {
+            "model": "grok-imagine-video-1.5", "prompt": "A test prompt", "seconds": "8",
+            "aspect_ratio": "16:9", "resolution": "1080p",
+            "image": "https://cdn.example.com/first-frame.png",
+        })
+
+    def test_grok_1_5_sends_a_deterministic_default_resolution(self):
+        payload, _ = CLIENT_MODULE.build_video_payload(self.video_args(resolution=None))
+        self.assertEqual(payload["resolution"], "720p")
+
+    def test_grok_1_5_reference_images_use_the_model_specific_field(self):
+        references = ["https://cdn.example.com/person.png", "https://cdn.example.com/style.png"]
+        payload, _ = CLIENT_MODULE.build_video_payload(self.video_args(reference_image=references))
+        self.assertEqual(payload["reference_images"], references)
+        self.assertNotIn("images", payload)
+
+    def test_grok_1_5_rejects_mixed_image_modes_before_upload(self):
+        args = self.video_args(image=["https://cdn.example.com/frame.png"], reference_image=["https://cdn.example.com/ref.png"])
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            CLIENT_MODULE.build_video_payload(args)
+
+    def test_grok_1_5_rejects_unsupported_duration(self):
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            CLIENT_MODULE.build_video_payload(self.video_args(seconds="5"))
+
+    def test_grok_1_5_rejects_1080p_reference_image_mode(self):
+        args = self.video_args(resolution="1080p", reference_image=["https://cdn.example.com/ref.png"])
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            CLIENT_MODULE.build_video_payload(args)
+
+    def test_grok_text_only_model_rejects_all_references(self):
+        args = self.video_args(model="grok-imagine-video", image=["https://cdn.example.com/frame.png"])
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            CLIENT_MODULE.build_video_payload(args)
+
+    def test_legacy_models_keep_reference_arrays(self):
+        args = self.video_args(
+            model="another-video-model", seconds="5", resolution=None,
+            image=["https://cdn.example.com/image.png"], video=["https://cdn.example.com/clip.mp4"],
+            audio=["https://cdn.example.com/sound.mp3"],
+        )
+        payload, _ = CLIENT_MODULE.build_video_payload(args)
+        self.assertEqual(payload["images"], args.image)
+        self.assertEqual(payload["videos"], args.video)
+        self.assertEqual(payload["audios"], args.audio)
+
 if __name__ == "__main__":
     unittest.main()

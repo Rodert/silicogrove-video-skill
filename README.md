@@ -10,6 +10,8 @@ Before the first use in each 24-hour period, the agent checks the cloned skill r
 
 硅碳森林视频 Skill 通过支持 `SKILL.md` 的 AI Agent 生成视频，支持文生视频、图片/视频/音频参考生成、本地素材上传、任务轮询和 MP4 下载。
 
+Grok 模型按官方字段协议执行：`grok-imagine-video` 仅文生视频；`grok-imagine-video-1.5` 的单张 `--image` 是首帧，多张人物/风格参考请使用 `--reference-image`，且不能混用。具体时长、分辨率和素材限制由技能在提交前校验。
+
 ## Copy to your AI (English)
 
 ```text

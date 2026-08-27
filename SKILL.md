@@ -38,14 +38,39 @@ python3 "$SKILL_DIR/scripts/silicogrove_video.py" select-model
 
 It queries `GET /v1/models` once and returns the first visible model in this order: `grok-imagine-video-1.5`, `grok-imagine-video`, `video-ds-2.0-fast`, `video-ds-2.0`, `as-sd2.0-fast`, `kling-video-v3`. Use the returned model directly. If the user asks to choose a model or asks which video models are available, run `python3 "$SKILL_DIR/scripts/silicogrove_video.py" video-models` once, show the returned video candidates, and wait for their selection. Do not show models during the automatic path. If no supported video model is visible, report that result rather than trying arbitrary models. Pass video length as a string, usually `"5"`, `"10"`, or `"15"`, and use `16:9`, `9:16`, or `1:1` for the aspect ratio.
 
+## Grok video protocol
+
+Use the exact schema for the selected Grok model; do not translate its image fields into the generic `images` array. The bundled client validates these rules before it uploads an asset or submits a task. For all details and future extensions, read `references/api.md`.
+
+- `grok-imagine-video` is text-to-video only. Do not pass `--image`, `--reference-image`, `--video`, or `--audio`.
+- `grok-imagine-video-1.5` supports text, one first-frame image, or one to seven reference images. Its `--seconds` must be `4`, `6`, `8`, `10`, `12`, or `15`; `--resolution` must be `480p`, `720p`, or `1080p`. When omitted, the client explicitly sends `720p`.
+- First-frame mode uses exactly one `--image`; the client sends the singular API field `image`. It can use up to `1080p`.
+- Reference-image mode uses one to seven `--reference-image` arguments; the client sends `reference_images`. It cannot be combined with `--image`, `--video`, or `--audio`, and it is limited to `480p` or `720p`. In the prompt, refer to these images as `<IMAGE_1>` through `<IMAGE_7>` when useful.
+
 ```bash
 python3 "$SKILL_DIR/scripts/silicogrove_video.py" generate \
   --model grok-imagine-video-1.5 \
   --prompt 'A cinematic 9:16 product video of a silver espresso machine, slow orbiting camera, morning light, realistic, no watermark.' \
-  --seconds 10 --aspect-ratio 9:16 --output-dir ./outputs
+  --seconds 10 --aspect-ratio 9:16 --resolution 720p --output-dir ./outputs
 ```
 
-For references, pass a publicly accessible `http(s)` URL directly, or pass a local file with `--image`, `--video`, or `--audio`; local files are uploaded to Silico Grove's temporary asset service. Local uploads are limited to 10 MiB for images, 100 MiB for videos, and 20 MiB for audio; uploaded assets expire after 24 hours. The 4-image, 3-video, and 1-audio limits apply to `video-ds-2.0`, `video-ds-2.0-fast`, and `as-sd2.0-fast`; confirm limits for other models from their model documentation.
+```bash
+python3 "$SKILL_DIR/scripts/silicogrove_video.py" generate \
+  --model grok-imagine-video-1.5 \
+  --prompt 'The provided image is the first frame. The man transforms into an armored warrior and flies into the sky.' \
+  --image /absolute/path/to/first-frame.jpg \
+  --seconds 8 --aspect-ratio 16:9 --resolution 1080p --output-dir ./outputs
+```
+
+```bash
+python3 "$SKILL_DIR/scripts/silicogrove_video.py" generate \
+  --model grok-imagine-video-1.5 \
+  --prompt 'Keep <IMAGE_1> recognizable while creating a polished cinematic motion shot.' \
+  --reference-image /absolute/path/to/person.jpg \
+  --seconds 8 --aspect-ratio 16:9 --resolution 720p --output-dir ./outputs
+```
+
+For non-Grok-1.5 reference-capable models, pass a publicly accessible `http(s)` URL directly, or pass a local file with `--image`, `--video`, or `--audio`; local files are uploaded to Silico Grove's temporary asset service. Local uploads are limited to 10 MiB for images, 100 MiB for videos, and 20 MiB for audio; uploaded assets expire after 24 hours. The 4-image, 3-video, and 1-audio limits apply to `video-ds-2.0`, `video-ds-2.0-fast`, and `as-sd2.0-fast`; confirm limits for other models from their model documentation.
 
 ```bash
 python3 "$SKILL_DIR/scripts/silicogrove_video.py" generate \
