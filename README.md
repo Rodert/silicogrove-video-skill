@@ -1,5 +1,7 @@
 # 硅碳森林视频 Skill
 
+<img src="assets/silicogrove-mark.png" alt="硅碳森林 logo" width="160" />
+
 用一句话生成视频，也可以用图片、视频或音频作为参考素材，由 AI 自动完成生成和下载。
 
 Generate videos through Silico Grove from a skill-compatible AI agent. It supports text-to-video, image/video/audio reference-guided generation, local asset upload, task polling, and MP4 download.
