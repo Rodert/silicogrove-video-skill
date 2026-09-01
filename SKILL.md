@@ -36,7 +36,7 @@ If the user specifies a model, use it without replacing it. If no model is speci
 python3 "$SKILL_DIR/scripts/silicogrove_video.py" select-model
 ```
 
-It queries `GET /v1/models` once and returns the first visible model in this order: `grok-imagine-video-1.5`, `grok-imagine-video`, `video-ds-2.0-fast`, `video-ds-2.0`, `as-sd2.0-fast`, `kling-video-v3`. Use the returned model directly. If the user asks to choose a model or asks which video models are available, run `python3 "$SKILL_DIR/scripts/silicogrove_video.py" video-models` once, show the returned video candidates, and wait for their selection. Do not show models during the automatic path. If no supported video model is visible, report that result rather than trying arbitrary models. Pass video length as a string, usually `"5"`, `"10"`, or `"15"`, and use `16:9`, `9:16`, or `1:1` for the aspect ratio.
+It queries `GET /v1/models` once and returns the first visible model in this order: `kling-video-v3`, `kling-video-v3-omni`, `kling-video-v3-turbo`, `grok-imagine-video-1.5`, `grok-imagine-video`, `video-ds-2.0-fast`, `video-ds-2.0`, `as-sd2.0-fast`. Use the returned model directly. If the user asks to choose a model or asks which video models are available, run `python3 "$SKILL_DIR/scripts/silicogrove_video.py" video-models` once, show the returned video candidates, and wait for their selection. Do not show models during the automatic path. If no supported video model is visible, report that result rather than trying arbitrary models. Pass video length as a string, usually `"5"`, `"10"`, or `"15"`, and use `16:9`, `9:16`, or `1:1` for the aspect ratio.
 
 ## Grok video protocol
 

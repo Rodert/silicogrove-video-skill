@@ -24,12 +24,14 @@ GROK_VIDEO_1_5_MODEL = "grok-imagine-video-1.5"
 GROK_1_5_SECONDS = {"4", "6", "8", "10", "12", "15"}
 GROK_1_5_RESOLUTIONS = {"480p", "720p", "1080p"}
 DEFAULT_VIDEO_MODELS = (
+    "kling-video-v3",
+    "kling-video-v3-omni",
+    "kling-video-v3-turbo",
     "grok-imagine-video-1.5",
     "grok-imagine-video",
     "video-ds-2.0-fast",
     "video-ds-2.0",
     "as-sd2.0-fast",
-    "kling-video-v3",
 )
 EXTENSIONS = {
     "image": {".jpg", ".jpeg", ".png", ".webp"},

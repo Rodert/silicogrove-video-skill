@@ -14,7 +14,7 @@
   - First-frame mode: send one singular `image` URL or data URL. It fixes the opening frame and may use up to `1080p`.
   - Reference-image mode: send `reference_images` as an array of one to seven URLs. It guides identity/style without fixing the opening frame; prompts may address them as `<IMAGE_1>` through `<IMAGE_7>`. It may use only `480p` or `720p`.
   - Never mix `image`, `images`, `image_urls`, or `input_reference` with `reference_images`. Do not send video or audio references to this model.
-- Other reference-capable models use optional `images`, `videos`, and `audios` arrays. Common models include `video-ds-2.0`, `as-sd2.0-fast`, and `kling-video-v3`; always use the model list returned for the current key and consult its model documentation before adding fields.
+- Other reference-capable models use optional `images`, `videos`, and `audios` arrays. Known Kling model IDs include `kling-video-v3`, `kling-video-v3-omni`, and `kling-video-v3-turbo`; always use the model list returned for the current key and consult its model documentation before adding fields.
 - Reference limits: 4 images, 3 videos, and 1 audio apply to `video-ds-2.0`, `video-ds-2.0-fast`, and `as-sd2.0-fast`. Other models may differ.
 
 Use a visible model name from `GET /v1/models`; availability depends on the API key and group. Common video task responses use `id` or `task_id` and statuses including `queued`, `in_progress`, `processing`, `completed`, `succeeded`, `failed`, or `cancelled`.

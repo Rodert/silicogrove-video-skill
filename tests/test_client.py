@@ -83,13 +83,13 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(CLIENT_MODULE.task_id_from({"id": "video_1"}), "video_1")
         self.assertEqual(CLIENT_MODULE.task_id_from({"data": {"task_id": "task_1"}}), "task_1")
 
-    def test_select_default_video_model_prefers_grok_1_5(self):
-        response = {"data": [{"id": "video-ds-2.0-fast"}, {"id": "grok-imagine-video"}, {"id": "grok-imagine-video-1.5"}]}
+    def test_select_default_video_model_prefers_standard_kling_v3(self):
+        response = {"data": [{"id": "grok-imagine-video-1.5"}, {"id": "kling-video-v3-turbo"}, {"id": "kling-video-v3"}]}
         with patch.object(CLIENT_MODULE, "json_request", return_value=(response, "https://api.example")), contextlib.redirect_stdout(io.StringIO()) as output:
             CLIENT_MODULE.select_default_video_model()
-        self.assertEqual(output.getvalue().strip(), "grok-imagine-video-1.5")
+        self.assertEqual(output.getvalue().strip(), "kling-video-v3")
 
-    def test_select_default_video_model_uses_grok_fallback(self):
+    def test_select_default_video_model_uses_grok_when_no_kling_model_is_visible(self):
         response = {"data": [{"id": "grok-imagine-video"}, {"id": "video-ds-2.0-fast"}]}
         with patch.object(CLIENT_MODULE, "json_request", return_value=(response, "https://api.example")), contextlib.redirect_stdout(io.StringIO()) as output:
             CLIENT_MODULE.select_default_video_model()
