@@ -19,16 +19,23 @@ POLL_INTERVAL_SECONDS = 10
 DEFAULT_TIMEOUT_SECONDS = 300
 MAX_REFERENCES = {"image": 4, "video": 3, "audio": 1}
 REFERENCE_LIMITED_MODELS = {"video-ds-2.0", "video-ds-2.0-fast", "as-sd2.0-fast"}
-GROK_VIDEO_MODEL = "grok-imagine-video"
-GROK_VIDEO_1_5_MODEL = "grok-imagine-video-1.5"
-GROK_1_5_SECONDS = {"4", "6", "8", "10", "12", "15"}
+GROK_VIDEO_1_5_MODEL = "grok-video-1.5"
+GROK_1_5_SECONDS = {"6", "8", "10", "12", "15"}
 GROK_1_5_RESOLUTIONS = {"480p", "720p", "1080p"}
+LEGACY_GROK_VIDEO_MODEL = "grok-imagine-video"
+LEGACY_GROK_VIDEO_1_5_MODEL = "grok-imagine-video-1.5"
+LEGACY_GROK_1_5_SECONDS = {"4", "6", "8", "10", "12", "15"}
+KLING_VIDEO_MODELS = {"kling-video-v3", "kling-video-v3-omni", "kling-video-v3-turbo"}
+KLING_RESOLUTIONS = {
+    "kling-video-v3": {"720p", "1080p", "4k"},
+    "kling-video-v3-omni": {"720p", "1080p", "4k"},
+    "kling-video-v3-turbo": {"720p", "1080p"},
+}
 DEFAULT_VIDEO_MODELS = (
     "kling-video-v3",
     "kling-video-v3-omni",
     "kling-video-v3-turbo",
-    "grok-imagine-video-1.5",
-    "grok-imagine-video",
+    "grok-video-1.5",
     "video-ds-2.0-fast",
     "video-ds-2.0",
     "as-sd2.0-fast",
@@ -240,7 +247,7 @@ def reference_images(args):
     return getattr(args, "reference_image", [])
 
 
-def grok_1_5_resolution(args):
+def requested_resolution(args):
     return getattr(args, "resolution", None) or "720p"
 
 
@@ -255,16 +262,34 @@ def validate_generate_arguments(args):
         fail("aspect-ratio must be 16:9, 9:16, or 1:1.")
 
     grok_references = reference_images(args)
-    if model == GROK_VIDEO_MODEL:
-        if args.image or grok_references or args.video or args.audio:
-            fail("grok-imagine-video supports text-to-video only. Use grok-imagine-video-1.5 for image input.")
-        return model
-
     if model == GROK_VIDEO_1_5_MODEL:
         if args.seconds not in GROK_1_5_SECONDS:
             values = ", ".join(sorted(GROK_1_5_SECONDS, key=int))
+            fail(f"grok-video-1.5 seconds must be one of: {values}.")
+        if args.video or args.audio:
+            fail("grok-video-1.5 accepts text and image references only; it does not accept video or audio references.")
+        if len(args.image) + len(grok_references) > 7:
+            fail("grok-video-1.5 accepts at most 7 image references.")
+        return model
+
+    if model in KLING_VIDEO_MODELS:
+        if not args.seconds.isdigit() or not 3 <= int(args.seconds) <= 15:
+            fail(f"{model} seconds must be a whole-number string from 3 to 15.")
+        if requested_resolution(args) not in KLING_RESOLUTIONS[model]:
+            values = ", ".join(sorted(KLING_RESOLUTIONS[model]))
+            fail(f"{model} resolution must be one of: {values}.")
+        return model
+
+    if model == LEGACY_GROK_VIDEO_MODEL:
+        if args.image or grok_references or args.video or args.audio:
+            fail("grok-imagine-video supports text-to-video only. Use grok-video-1.5 for image references.")
+        return model
+
+    if model == LEGACY_GROK_VIDEO_1_5_MODEL:
+        if args.seconds not in LEGACY_GROK_1_5_SECONDS:
+            values = ", ".join(sorted(LEGACY_GROK_1_5_SECONDS, key=int))
             fail(f"grok-imagine-video-1.5 seconds must be one of: {values}.")
-        if grok_1_5_resolution(args) not in GROK_1_5_RESOLUTIONS:
+        if requested_resolution(args) not in GROK_1_5_RESOLUTIONS:
             fail("grok-imagine-video-1.5 resolution must be 480p, 720p, or 1080p.")
         if args.video or args.audio:
             fail("grok-imagine-video-1.5 does not accept video or audio references.")
@@ -274,17 +299,29 @@ def validate_generate_arguments(args):
             fail("grok-imagine-video-1.5 accepts at most 7 --reference-image values.")
         if args.image and grok_references:
             fail("grok-imagine-video-1.5 cannot combine --image with --reference-image.")
-        if grok_references and grok_1_5_resolution(args) == "1080p":
+        if grok_references and requested_resolution(args) == "1080p":
             fail("grok-imagine-video-1.5 reference-image mode supports up to 720p resolution.")
         return model
 
     if grok_references:
-        fail("--reference-image is only supported by grok-imagine-video-1.5.")
+        fail("--reference-image is only supported by grok-video-1.5 and the retired grok-imagine-video-1.5.")
     return model
 
 
-def collect_grok_1_5_references(args, task_log=None):
-    """Resolve model-specific Grok inputs without changing their API field shape."""
+def collect_grok_video_1_5_references(args, task_log=None):
+    """Resolve current Grok references into its documented image_urls array."""
+    used_base = None
+    urls = []
+    for value in [*args.image, *reference_images(args)]:
+        url, reference_base = reference_url("image", value, task_log)
+        if reference_base:
+            used_base = reference_base
+        urls.append(url)
+    return ({"image_urls": urls} if urls else {}), used_base
+
+
+def collect_legacy_grok_1_5_references(args, task_log=None):
+    """Resolve retired Grok inputs without changing their legacy API field shape."""
     used_base = None
 
     def resolve(values):
@@ -310,13 +347,15 @@ def build_video_payload(args, task_log=None):
     model = validate_generate_arguments(args)
     payload = {"model": model, "prompt": args.prompt, "seconds": args.seconds, "aspect_ratio": args.aspect_ratio}
     resolution = getattr(args, "resolution", None)
-    if model == GROK_VIDEO_1_5_MODEL:
-        payload["resolution"] = grok_1_5_resolution(args)
+    if model in KLING_VIDEO_MODELS or model in {GROK_VIDEO_1_5_MODEL, LEGACY_GROK_VIDEO_1_5_MODEL}:
+        payload["resolution"] = requested_resolution(args)
     elif resolution:
         payload["resolution"] = resolution
     if model == GROK_VIDEO_1_5_MODEL:
-        references, upload_base = collect_grok_1_5_references(args, task_log)
-    elif model == GROK_VIDEO_MODEL:
+        references, upload_base = collect_grok_video_1_5_references(args, task_log)
+    elif model == LEGACY_GROK_VIDEO_1_5_MODEL:
+        references, upload_base = collect_legacy_grok_1_5_references(args, task_log)
+    elif model == LEGACY_GROK_VIDEO_MODEL:
         references, upload_base = {}, None
     else:
         references, upload_base = collect_references(args, task_log)
