@@ -17,6 +17,7 @@ from pathlib import Path
 BASE_URLS = ("https://ai.silicogrove.com", "https://api.silicogrove.com")
 POLL_INTERVAL_SECONDS = 10
 DEFAULT_TIMEOUT_SECONDS = 300
+DEFAULT_VIDEO_SECONDS = "15"
 MAX_REFERENCES = {"image": 4, "video": 3, "audio": 1}
 REFERENCE_LIMITED_MODELS = {"video-ds-2.0", "video-ds-2.0-fast", "as-sd2.0-fast"}
 GROK_VIDEO_1_5_MODEL = "grok-video-1.5"
@@ -471,7 +472,7 @@ def main():
     generate_parser = commands.add_parser("generate")
     generate_parser.add_argument("--model", required=True)
     generate_parser.add_argument("--prompt", required=True)
-    generate_parser.add_argument("--seconds", default="10")
+    generate_parser.add_argument("--seconds", default=DEFAULT_VIDEO_SECONDS)
     generate_parser.add_argument("--aspect-ratio", default="16:9")
     generate_parser.add_argument("--resolution")
     generate_parser.add_argument("--image", action="append", default=[])

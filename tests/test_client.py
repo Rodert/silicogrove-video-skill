@@ -83,6 +83,9 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(CLIENT_MODULE.task_id_from({"id": "video_1"}), "video_1")
         self.assertEqual(CLIENT_MODULE.task_id_from({"data": {"task_id": "task_1"}}), "task_1")
 
+    def test_default_video_duration_is_fifteen_seconds(self):
+        self.assertEqual(CLIENT_MODULE.DEFAULT_VIDEO_SECONDS, "15")
+
     def test_select_default_video_model_prefers_standard_kling_v3(self):
         response = {"data": [{"id": "grok-video-1.5"}, {"id": "kling-video-v3-turbo"}, {"id": "kling-video-v3"}]}
         with patch.object(CLIENT_MODULE, "json_request", return_value=(response, "https://api.example")), contextlib.redirect_stdout(io.StringIO()) as output:
